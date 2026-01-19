@@ -181,7 +181,7 @@ static void render_callback(Canvas* canvas, void* ctx) {
     canvas_set_font(canvas, FontSecondary);
 	
 	// USB symbol (blinks fast when searching, blinks slow when connected)
-	canvas_draw_icon(canvas, 110, 1, &I_icon_10x10);    
+	canvas_draw_icon(canvas, 118, 1, &I_usb);    
     
     // Draw date rotated 90 degrees on right edge
     canvas_set_font_direction(canvas, CanvasDirectionBottomToTop);
@@ -223,11 +223,7 @@ static void render_callback(Canvas* canvas, void* ctx) {
 	canvas_draw_str_aligned(canvas, 11, 63, AlignLeft, AlignBottom, "Choose");
 	canvas_draw_icon(canvas, 121, 57, &I_back);
 	canvas_draw_str_aligned(canvas, 120, 63, AlignRight, AlignBottom, "Pause");
-	    
-    // Draw footer 
-    canvas_set_font(canvas, FontSecondary);
-    canvas_draw_str_aligned(canvas, 127, 57, AlignRight, AlignTop, "f418.eu");
-       
+	      
     furi_mutex_release(app->mutex);
 }
 

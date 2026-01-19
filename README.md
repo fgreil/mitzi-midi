@@ -27,6 +27,8 @@ ChPress Ch01 Val080        // Channel Pressure, channel 1, value 80
 PolyAT  Ch01 C4 P080       // Poly Aftertouch, channel 1, note C4, pressure 80
 System  0xF8               // System message (e.g., Clock)
 ```
+
+### Code Index Numbers
 A pitfall is that MIDI messages have variable lengths:
 - Program Change: 2 bytes
 - Note On/Off: 3 bytes
@@ -52,7 +54,7 @@ USB MIDI uses fixed 4-byte packets. How do we know how many bytes are valid?
 | 0xE | Pitch Bend                            |
 | 0xF | Single Byte                           |
 
-### Minimal Set of Examples
+Minimal Set of Examples
 * Note On (C4, velocity 100, channel 1)
   ```
   0x09 0x90 0x3C 0x64
@@ -76,6 +78,19 @@ USB MIDI uses fixed 4-byte packets. How do we know how many bytes are valid?
   Packet 3: 0x04 0x01 0x02 0x03  (CIN=4: Continue, 3 bytes valid)
   Packet 4: 0x05 0xF7 0x00 0x00  (CIN=5: End with 1 byte)
   ```
+### SysEx (System Exclusive) Messages
+Standard MIDI play notes, change volume, bend pitch. On top of these universal commands, there are device-specific, custom commands.
+
+Most MIDI devices respond to a Universal Identity Request: `F0 7E 7F 06 01 F7`.
+The answer would be something like `F0 7E 7F 06 02 [Manufacturer ID] [Device Family] [Device Member] [Version] F7`. For instance, a Roland JV-1080 says
+```
+F0 7E 7F 06 02 41 19 00 01 00 00 01 F7
+              │  └──┬──┘ └──┬──┘
+              │     │       │
+              │     │       └─── Software version
+              │     └────────── Device family/member
+              └─────────────── Roland
+```
 
 ## Known Limitations
 

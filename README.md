@@ -6,7 +6,7 @@ Towards a capturing MIDI signals via USB using Flipper Zero. The goal is to allo
 ## Current challenge
 In order to get it all working, we would need to act F0 to act as a host, and this brings a load of problems. One of them is that USB devices can draw up to 500mA which the Flipper's battery can't sustain. Besides, Fipper's USB host mode isn't well documented.
 
-Maybe we have to try a different approach using the traditional UART MIDI via GPIO?!
+Maybe we have to try a different approach using the traditional UART (Universal Asynchronous Receiver/Transmitter) MIDI via GPIO?!
 * Pin 4: Source (+5V through 220Ω)
 * Pin 5: Sink (Ground through opto-isolator)
 

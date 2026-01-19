@@ -8,7 +8,10 @@ A simple Flipper Zero app.
 ## Usage
 - **Arrow Keys**: tbd
 - **OK Button**: tbd
-- **Back Button**: Exits 
+- **Back Button**: Exits
+
+## References
+* https://www.usb.org/sites/default/files/midi10.pdf
 
 ## Version history
 See [changelog.md](changelog.md)

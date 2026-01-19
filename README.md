@@ -81,16 +81,23 @@ Minimal Set of Examples
 ### SysEx (System Exclusive) Messages
 Standard MIDI play notes, change volume, bend pitch. On top of these universal commands, there are device-specific, custom commands.
 
-Most MIDI devices respond to a Universal Identity Request: `F0 7E 7F 06 01 F7`.
+Most MIDI devices respond to a Universal Identity Request (UIR): `F0 7E 7F 06 01 F7`.
 The answer would be something like `F0 7E 7F 06 02 [Manufacturer ID] [Device Family] [Device Member] [Version] F7`. For instance, a Roland JV-1080 says
 ```
 F0 7E 7F 06 02 41 19 00 01 00 00 01 F7
-              │  └──┬──┘ └──┬──┘
-              │     │       │
-              │     │       └─── Software version
-              │     └────────── Device family/member
-              └─────────────── Roland
+│  │  │  │  │  │  └──┬──┘ └────┬────┘
+│  │  │  │  │  │     │         └────── Software version (4 bytes)
+│  │  │  │  │  │     └──────────────── Device family & member (2 bytes)
+│  │  │  │  │  └────────────────────── Manufacturer ID: Roland (0x41)
+│  │  │  │  └───────────────────────── Sub-ID: Identity Reply
+│  │  │  └──────────────────────────── ID: General Information
+│  │  └─────────────────────────────── Device ID: All devices (0x7F)
+│  └────────────────────────────────── Universal Non-Real Time (0x7E)
+└───────────────────────────────────── SysEx Start
 ```
+**Note.** Not all devices support SysEx-messages
+- The [Swissonic EasyKey 49](https://www.thomann.de/de/swissonic_easykey_49.htm) will not even respond to a Universal Identity Request, since it is a simple, transmit-only MIDI controller. According to the [documentation of Swisssonic EasyKey](https://images.thomann.de/pics/atg/atgdata/document/manual/c_337438_337441_337442_r1_de_online.pdf) it only transmits Note On/Off, Pitch Bend, Control Change, and Program Change messages. This makes it an ideal testing device for this F0-app.
+- To my knowledge, Roland hasn't published specific device family/member ID codes for the famous [Roland Aira Compact series](https://www.roland.com/de/promos/aira_compact/), at least I don't find them in the manuals.
 
 ## Known Limitations
 

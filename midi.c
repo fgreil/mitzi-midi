@@ -65,6 +65,7 @@ typedef struct {
 } MidiApp;
 
 // Parse MIDI status byte to extract message type and channel
+/*
 static void parse_midi_status(uint8_t status, MidiMessageType* type, uint8_t* channel) {
     if(status < 0xF0) {
         // Channel messages (0x80-0xEF)
@@ -76,6 +77,7 @@ static void parse_midi_status(uint8_t status, MidiMessageType* type, uint8_t* ch
         *channel = 0; // System messages don't have channels
     }
 }
+*/
 
 // Add a MIDI message to the ring buffer
 static void add_midi_message(MidiState* state, const MidiMessage* message) {
@@ -182,7 +184,7 @@ static void render_callback(Canvas* canvas, void* ctx) {
     
     // Draw date rotated 90 degrees on right edge
     canvas_set_font_direction(canvas, CanvasDirectionBottomToTop);
-    canvas_draw_str(canvas, 128, 47, "2026-01");        
+    canvas_draw_str(canvas, 128, 47, "f418.eu");        
     canvas_set_font_direction(canvas, CanvasDirectionLeftToRight);
     
     // Draw USB connection status
@@ -218,22 +220,13 @@ static void render_callback(Canvas* canvas, void* ctx) {
     // Navigation hint
     canvas_draw_icon(canvas, 1, 55, &I_arrows);
 	canvas_draw_str_aligned(canvas, 11, 63, AlignLeft, AlignBottom, "Choose");
-    
-    // Draw footer with instructions
+	canvas_draw_icon(canvas, 121, 57, &I_back);
+	canvas_draw_str_aligned(canvas, 120, 63, AlignRight, AlignBottom, "Pause");
+	    
+    // Draw footer 
     canvas_set_font(canvas, FontSecondary);
-    canvas_draw_str_aligned(canvas, 1, 57, AlignLeft, AlignTop, "Back: exit");
     canvas_draw_str_aligned(canvas, 127, 57, AlignRight, AlignTop, "f418.eu");
-    
-    // Show scroll indicators if there are more messages
-    if(app->state->message_count > 4) {
-        if(app->state->display_offset > 0) {
-            elements_button_up(canvas, "↑");
-        }
-        if(app->state->display_offset + 4 < app->state->message_count) {
-            elements_button_down(canvas, "↓");
-        }
-    }
-    
+       
     furi_mutex_release(app->mutex);
 }
 

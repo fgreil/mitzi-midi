@@ -6,7 +6,7 @@
 #include "midi_icons.h" // Custom icon definitions
 
 #define TAG "Mitzi_Midi"
-#define MAX_MIDI_MESSAGES 8 // Number of MIDI messages to display in history
+#define MAX_MIDI_MESSAGES 3 // Number of MIDI messages to display in history
 
 // MIDI message types (status bytes)
 typedef enum {
@@ -34,10 +34,9 @@ typedef struct {
 typedef struct {
     MidiMessage messages[MAX_MIDI_MESSAGES]; // Ring buffer of received messages
     uint8_t message_count;                   // Total messages received
-    uint8_t display_offset;                  // Scroll offset for display
     bool usb_connected;                      // USB connection status
     uint32_t last_message_time;              // Timestamp of last message
-	uint32_t blink_counter;                  // Counter for USB icon blinking
+    uint32_t blink_counter;                  // Counter for USB icon blinking
 } MidiState;
 
 // Event types for the application
@@ -66,6 +65,7 @@ typedef struct {
 } MidiApp;
 
 // Parse MIDI status byte to extract message type and channel
+// Currently commented out as it's only used by usb_midi_rx_callback (also commented out)
 /*
 static void parse_midi_status(uint8_t status, MidiMessageType* type, uint8_t* channel) {
     if(status < 0xF0) {
@@ -178,21 +178,15 @@ static void render_callback(Canvas* canvas, void* ctx) {
     // Draw header with icon and title
     canvas_set_font(canvas, FontPrimary);
     canvas_draw_icon(canvas, 1, 1, &I_icon_10x10);    
-    canvas_draw_str_aligned(canvas, 12, 1, AlignLeft, AlignTop, "Mitzi Midi");	
+    canvas_draw_str_aligned(canvas, 12, 1, AlignLeft, AlignTop, "Mitzi Midi");
     canvas_set_font(canvas, FontSecondary);
-	
-	 // USB symbol (blinks fast when searching, blinks slow when connected)
-    if(app->state->usb_connected) {
-        // Slow blink when connected (every ~1 second)
-        if((app->state->blink_counter / 10) % 2 == 0) {
-            canvas_draw_icon(canvas, 118, 1, &I_usb);
-        }
-    } else {
-        // Fast blink when waiting (every ~0.3 seconds)
-        if((app->state->blink_counter / 3) % 2 == 0) {
-            canvas_draw_icon(canvas, 118, 1, &I_usb);
-        }
-    }   
+    
+    // USB symbol (blinks fast when searching, blinks slow when connected)
+    // Fast blink when waiting (every ~0.3 seconds), slow when connected (every ~1 second)
+    uint32_t blink_divisor = app->state->usb_connected ? 10 : 3;
+    if((app->state->blink_counter / blink_divisor) % 2 == 0) {
+        canvas_draw_icon(canvas, 118, 1, &I_usb);
+    }
     
     // Draw date rotated 90 degrees on right edge
     canvas_set_font_direction(canvas, CanvasDirectionBottomToTop);
@@ -204,16 +198,13 @@ static void render_callback(Canvas* canvas, void* ctx) {
     uint8_t y = 22;
     char msg_buffer[32];
     
-    uint8_t messages_to_show = (app->state->message_count < 4) ? 
-                               app->state->message_count : 4;
+    uint8_t messages_to_show = (app->state->message_count < MAX_MIDI_MESSAGES) ? 
+                               app->state->message_count : MAX_MIDI_MESSAGES;
     
     for(uint8_t i = 0; i < messages_to_show; i++) {
-        uint8_t msg_index = i + app->state->display_offset;
-        if(msg_index < app->state->message_count) {
-            format_midi_message(&app->state->messages[msg_index], msg_buffer, sizeof(msg_buffer));
-            canvas_draw_str(canvas, 1, y, msg_buffer);
-            y += 9;
-        }
+        format_midi_message(&app->state->messages[i], msg_buffer, sizeof(msg_buffer));
+        canvas_draw_str(canvas, 1, y, msg_buffer);
+        y += 9;
     }
     
     // If no messages yet, show helpful text
@@ -221,12 +212,13 @@ static void render_callback(Canvas* canvas, void* ctx) {
         canvas_set_font(canvas, FontSecondary);
         canvas_draw_str_aligned(canvas, 64, 30, AlignCenter, AlignTop, "Waiting for MIDI...");
     }
+    
     // Navigation hint
     canvas_draw_icon(canvas, 1, 55, &I_arrows);
-	canvas_draw_str_aligned(canvas, 11, 63, AlignLeft, AlignBottom, "Choose");
-	canvas_draw_icon(canvas, 121, 57, &I_back);
-	canvas_draw_str_aligned(canvas, 120, 63, AlignRight, AlignBottom, "Pause");
-	      
+    canvas_draw_str_aligned(canvas, 11, 63, AlignLeft, AlignBottom, "Choose");
+    canvas_draw_icon(canvas, 121, 57, &I_back);
+    canvas_draw_str_aligned(canvas, 120, 63, AlignRight, AlignBottom, "Pause");
+    
     furi_mutex_release(app->mutex);
 }
 
@@ -288,7 +280,6 @@ static bool init_usb_midi(MidiApp* app) {
 // Deinitialize USB MIDI interface
 static void deinit_usb_midi(void) {
     // TODO: Clean up USB MIDI resources
-    FURI_LOG_I(TAG, "USB MIDI cleanup");
 }
 
 // Main application entry point
@@ -328,36 +319,14 @@ int32_t midi_main(void* p) {
             switch(event.type) {
             case EventTypeKey:
                 if(event.input.type == InputTypePress || event.input.type == InputTypeRepeat) {
-                    switch(event.input.key) {
-                    case InputKeyUp:
-                        // Scroll up through message history
-                        if(app->state->display_offset > 0) {
-                            app->state->display_offset--;
-                        }
-                        break;
-                        
-                    case InputKeyDown:
-                        // Scroll down through message history
-                        if(app->state->display_offset + 4 < app->state->message_count) {
-                            app->state->display_offset++;
-                        }
-                        break;
-                        
-                    case InputKeyOk:
+                    if(event.input.key == InputKeyOk) {
                         // Clear message history
                         FURI_LOG_I(TAG, "Clearing MIDI message history");
                         app->state->message_count = 0;
-                        app->state->display_offset = 0;
-                        break;
-                        
-                    case InputKeyBack:
+                    } else if(event.input.key == InputKeyBack) {
                         // Exit the application
                         FURI_LOG_I(TAG, "Exit requested");
                         running = false;
-                        break;
-                        
-                    default:
-                        break;
                     }
                 }
                 break;
@@ -380,12 +349,15 @@ int32_t midi_main(void* p) {
             
             furi_mutex_release(app->mutex);
             view_port_update(app->view_port);
-			
-		// Update blink counter for USB icon animation
+        }
+        
+        // Update blink counter for USB icon animation (runs every loop iteration)
         furi_mutex_acquire(app->mutex, FuriWaitForever);
         app->state->blink_counter++;
         furi_mutex_release(app->mutex);
-        }
+        
+        // Trigger redraw for USB icon blinking animation
+        view_port_update(app->view_port);
     }
     
     FURI_LOG_I(TAG, "Cleaning up...");

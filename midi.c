@@ -224,10 +224,10 @@ static void render_callback(Canvas* canvas, void* ctx) {
     // Show scroll indicators if there are more messages
     if(app->state->message_count > 4) {
         if(app->state->display_offset > 0) {
-            elements_button_top(canvas, "↑");
+            elements_button_up(canvas, "↑");
         }
         if(app->state->display_offset + 4 < app->state->message_count) {
-            elements_button_bottom(canvas, "↓");
+            elements_button_down(canvas, "↓");
         }
     }
     
@@ -243,6 +243,8 @@ static void input_callback(InputEvent* input_event, void* ctx) {
 
 // USB MIDI receive callback (placeholder - needs USB HAL integration)
 // This would be called by USB interrupt handler when MIDI data arrives
+// Currently commented out to avoid unused function warning until USB HAL is integrated
+/*
 static void usb_midi_rx_callback(uint8_t* data, size_t length, void* ctx) {
     MidiApp* app = ctx;
     
@@ -275,9 +277,12 @@ static void usb_midi_rx_callback(uint8_t* data, size_t length, void* ctx) {
                   cin, status, data1, data2);
     }
 }
+*/
 
 // Initialize USB MIDI interface
 static bool init_usb_midi(MidiApp* app) {
+    UNUSED(app);
+    
     // TODO: Initialize USB MIDI class device
     // This requires integration with Flipper's USB HAL
     // For now, return false to indicate USB not yet implemented

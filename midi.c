@@ -177,10 +177,11 @@ static void render_callback(Canvas* canvas, void* ctx) {
     // Draw header with icon and title
     canvas_set_font(canvas, FontPrimary);
     canvas_draw_icon(canvas, 1, 1, &I_icon_10x10);    
-    canvas_draw_str_aligned(canvas, 12, 1, AlignLeft, AlignTop, "Mitzi Midi");
-    
+    canvas_draw_str_aligned(canvas, 12, 1, AlignLeft, AlignTop, "Mitzi Midi");	
     canvas_set_font(canvas, FontSecondary);
-    canvas_draw_str_aligned(canvas, 110, 1, AlignLeft, AlignTop, "v0.1");
+	
+	// USB symbol (blinks fast when searching, blinks slow when connected)
+	canvas_draw_icon(canvas, 110, 1, &I_icon_10x10);    
     
     // Draw date rotated 90 degrees on right edge
     canvas_set_font_direction(canvas, CanvasDirectionBottomToTop);

@@ -37,6 +37,7 @@ typedef struct {
     uint8_t display_offset;                  // Scroll offset for display
     bool usb_connected;                      // USB connection status
     uint32_t last_message_time;              // Timestamp of last message
+	uint32_t blink_counter;                  // Counter for USB icon blinking
 } MidiState;
 
 // Event types for the application
@@ -180,21 +181,23 @@ static void render_callback(Canvas* canvas, void* ctx) {
     canvas_draw_str_aligned(canvas, 12, 1, AlignLeft, AlignTop, "Mitzi Midi");	
     canvas_set_font(canvas, FontSecondary);
 	
-	// USB symbol (blinks fast when searching, blinks slow when connected)
-	canvas_draw_icon(canvas, 118, 1, &I_usb);    
+	 // USB symbol (blinks fast when searching, blinks slow when connected)
+    if(app->state->usb_connected) {
+        // Slow blink when connected (every ~1 second)
+        if((app->state->blink_counter / 10) % 2 == 0) {
+            canvas_draw_icon(canvas, 118, 1, &I_usb);
+        }
+    } else {
+        // Fast blink when waiting (every ~0.3 seconds)
+        if((app->state->blink_counter / 3) % 2 == 0) {
+            canvas_draw_icon(canvas, 118, 1, &I_usb);
+        }
+    }   
     
     // Draw date rotated 90 degrees on right edge
     canvas_set_font_direction(canvas, CanvasDirectionBottomToTop);
     canvas_draw_str(canvas, 128, 47, "f418.eu");        
     canvas_set_font_direction(canvas, CanvasDirectionLeftToRight);
-    
-    // Draw USB connection status
-    canvas_set_font(canvas, FontSecondary);
-    if(app->state->usb_connected) {
-        canvas_draw_str_aligned(canvas, 64, 12, AlignCenter, AlignTop, "USB: Connected");
-    } else {
-        canvas_draw_str_aligned(canvas, 64, 12, AlignCenter, AlignTop, "USB: Waiting...");
-    }
     
     // Draw MIDI message history
     canvas_set_font(canvas, FontKeyboard);
@@ -278,9 +281,7 @@ static bool init_usb_midi(MidiApp* app) {
     
     // TODO: Initialize USB MIDI class device
     // This requires integration with Flipper's USB HAL
-    // For now, return false to indicate USB not yet implemented
-    
-    FURI_LOG_W(TAG, "USB MIDI HAL integration not yet implemented");    
+    // For now, return false to indicate USB not yet implemented 
     return false;
 }
 
@@ -379,6 +380,11 @@ int32_t midi_main(void* p) {
             
             furi_mutex_release(app->mutex);
             view_port_update(app->view_port);
+			
+		// Update blink counter for USB icon animation
+        furi_mutex_acquire(app->mutex, FuriWaitForever);
+        app->state->blink_counter++;
+        furi_mutex_release(app->mutex);
         }
     }
     

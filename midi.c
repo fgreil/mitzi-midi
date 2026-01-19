@@ -215,6 +215,9 @@ static void render_callback(Canvas* canvas, void* ctx) {
         canvas_set_font(canvas, FontSecondary);
         canvas_draw_str_aligned(canvas, 64, 30, AlignCenter, AlignTop, "Waiting for MIDI...");
     }
+    // Navigation hint
+    canvas_draw_icon(canvas, 1, 55, &I_arrows);
+	canvas_draw_str_aligned(canvas, 11, 63, AlignLeft, AlignBottom, "Choose");
     
     // Draw footer with instructions
     canvas_set_font(canvas, FontSecondary);
@@ -287,12 +290,7 @@ static bool init_usb_midi(MidiApp* app) {
     // This requires integration with Flipper's USB HAL
     // For now, return false to indicate USB not yet implemented
     
-    FURI_LOG_W(TAG, "USB MIDI HAL integration not yet implemented");
-    FURI_LOG_I(TAG, "To implement: Set up USB device with MIDI class");
-    FURI_LOG_I(TAG, "  - Configure USB endpoints for MIDI");
-    FURI_LOG_I(TAG, "  - Register RX callback: usb_midi_rx_callback()");
-    FURI_LOG_I(TAG, "  - Handle USB connect/disconnect events");
-    
+    FURI_LOG_W(TAG, "USB MIDI HAL integration not yet implemented");    
     return false;
 }
 
